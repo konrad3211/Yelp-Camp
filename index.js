@@ -19,6 +19,7 @@ const User = require("./modules/user")
 const sanitizeV5 = require('./utils/mongoSanitizeV5.js');
 const helmet = require("helmet")
 const MongoStore = require('connect-mongo')(session)
+const dbUrl = process.env.DB_URL
 
 
 const app = express()
@@ -30,9 +31,9 @@ const campgroundRoutes = require("./routes/campgrounds")
 const reviewRoutes = require("./routes/reviews")
 
 main().catch(err => console.log(err));
-
+// 'mongodb://127.0.0.1:27017/Yelp-camp'
 async function main() {
-    await mongoose.connect('mongodb://127.0.0.1:27017/Yelp-camp');
+    await mongoose.connect(dbUrl);
     console.log("connected to mongo")
 }
 
@@ -103,7 +104,8 @@ app.use(express.static(path.join(__dirname, 'public')))
 app.use(sanitizeV5({ replaceWith: '_' }));
 
 const store = new MongoStore({
-    url: 'mongodb://127.0.0.1:27017/Yelp-camp',
+    // url: 'mongodb://127.0.0.1:27017/Yelp-camp',
+    url: dbUrl,
     secret: 'thisshouldbebettersecret',
     touchAfter: 24 * 60 * 60
 
@@ -178,7 +180,7 @@ app.use((err, req, res, next) => {
 
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
     console.log(`serving on port ${port}`);
 });
 
