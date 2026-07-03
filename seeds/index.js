@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const cities = require("./cities");
 const { places, descriptors } = require("./seedHelpers");
 const Campground = require("../modules/campground");
+require("dotenv").config();
 
 const images = [
   {
@@ -58,9 +59,8 @@ async function seedDB() {
 
 async function main() {
   try {
-    await mongoose.connect(
-      "mongodb+srv://konradpatla_db_user:cc8FIVCJFuqxPAAz@cluster0.eqslg4h.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
-    );
+    console.log(process.env.DB_URL);
+    await mongoose.connect(process.env.DB_URL);
 
     console.log("Connected to MongoDB");
 
