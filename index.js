@@ -2,11 +2,8 @@ if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
 
-// require('dotenv').config();
-
 const express = require("express");
 const mongoose = require("mongoose");
-const nodemon = require("nodemon");
 const path = require("path");
 const ejsMate = require("ejs-mate");
 const session = require("express-session");
@@ -19,21 +16,27 @@ const User = require("./modules/user");
 const sanitizeV5 = require("./utils/mongoSanitizeV5.js");
 const helmet = require("helmet");
 const MongoStore = require("connect-mongo")(session);
+
 const dbUrl = process.env.DB_URL;
+const sessionSecret =
+  process.env.SESSION_SECRET || "thisshouldbebettersecret";
+const port = process.env.PORT || 3000;
+
+if (!dbUrl) {
+  throw new Error("DB_URL environment variable is required");
+}
 
 const app = express();
 
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
+
 app.set("query parser", "extended");
+
 const userRoutes = require("./routes/users");
 const campgroundRoutes = require("./routes/campgrounds");
 const reviewRoutes = require("./routes/reviews");
-
-main().catch((err) => console.log(err));
-// 'mongodb://127.0.0.1:27017/Yelp-camp'
-async function main() {
-  await mongoose.connect(dbUrl);
-  console.log("connected to mongo");
-}
 
 app.use(helmet());
 
@@ -44,8 +47,8 @@ const scriptSrcUrls = [
   "https://kit.fontawesome.com/",
   "https://cdnjs.cloudflare.com/",
   "https://stackpath.bootstrapcdn.com/",
-  "https://stackpath.bootstrapcdn.com/",
 ];
+
 const styleSrcUrls = [
   "https://kit-free.fontawesome.com/",
   "https://cdn.jsdelivr.net/",
@@ -56,6 +59,7 @@ const styleSrcUrls = [
   "https://cdnjs.cloudflare.com/",
   "https://stackpath.bootstrapcdn.com/",
 ];
+
 const connectSrcUrls = [
   "https://api.mapbox.com/",
   "https://a.tiles.mapbox.com/",
@@ -64,7 +68,9 @@ const connectSrcUrls = [
   "https://cdn.jsdelivr.net/",
   "https://stackpath.bootstrapcdn.com/",
 ];
+
 const fontSrcUrls = [];
+
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
@@ -78,7 +84,7 @@ app.use(
         "'self'",
         "blob:",
         "data:",
-        "https://res.cloudinary.com/dbfriowvq/", //SHOULD MATCH YOUR CLOUDINARY ACCOUNT!
+        "https://res.cloudinary.com/dbfriowvq/",
         "https://images.unsplash.com/",
       ],
       fontSrc: ["'self'", ...fontSrcUrls],
@@ -97,26 +103,24 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(sanitizeV5({ replaceWith: "_" }));
 
 const store = new MongoStore({
-  // url: 'mongodb://127.0.0.1:27017/Yelp-camp',
   url: dbUrl,
-  secret: "thisshouldbebettersecret",
   touchAfter: 24 * 60 * 60,
 });
 
-store.on("error", function (e) {
-  console.log("session store error", e);
+store.on("error", (error) => {
+  console.error("Session store error:", error);
 });
 
 const sessionConfig = {
   store,
   name: "session",
-  secret: "thisshouldbebettersecret",
+  secret: sessionSecret,
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    // secure: true,
-    expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
     maxAge: 1000 * 60 * 60 * 24 * 7,
   },
 };
@@ -132,17 +136,10 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 app.use((req, res, next) => {
-  console.log(req.query);
   res.locals.currentUser = req.user;
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
   next();
-});
-
-app.get("/fakeUser", async (req, res) => {
-  const user = new User({ email: "konrad@gmail.com", username: "colt" });
-  const newUser = await User.register(user, "konrad");
-  res.send(newUser);
 });
 
 app.use("/", userRoutes);
@@ -163,7 +160,18 @@ app.use((err, req, res, next) => {
   res.status(statusCode).render("error", { err });
 });
 
-const port = process.env.PORT || 3000;
-app.listen(port, "0.0.0.0", () => {
-  console.log(`serving on port ${port}`);
-});
+async function startServer() {
+  try {
+    await mongoose.connect(dbUrl);
+    console.log("Connected to MongoDB");
+
+    app.listen(port, "0.0.0.0", () => {
+      console.log(`Serving on port ${port}`);
+    });
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  }
+}
+
+startServer();
