@@ -4,6 +4,12 @@ const { places, descriptors } = require("./seedHelpers");
 const Campground = require("../modules/campground");
 require("dotenv").config();
 
+const dbUrl = process.env.DB_URL;
+
+if (!dbUrl) {
+  throw new Error("DB_URL environment variable is required");
+}
+
 const images = [
   {
     url: "https://res.cloudinary.com/dbfriowvq/image/upload/v1783075895/pexels-petra-g-3036820-12921226_natggh.jpg",
@@ -59,19 +65,16 @@ async function seedDB() {
 
 async function main() {
   try {
-    console.log(process.env.DB_URL);
-    await mongoose.connect(process.env.DB_URL);
-
+    await mongoose.connect(dbUrl);
     console.log("Connected to MongoDB");
 
     await seedDB();
-
     console.log("Database seeded!");
-
+  } catch (error) {
+    console.error("Seeding failed:", error);
+    process.exitCode = 1;
+  } finally {
     await mongoose.connection.close();
-    console.log("Connection closed");
-  } catch (err) {
-    console.error(err);
   }
 }
 
