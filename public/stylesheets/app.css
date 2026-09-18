@@ -7,3 +7,91 @@
     width: 100%;
     height: 300px;
 }
+
+.campground-show {
+    max-width: 1180px;
+    margin: 0 auto;
+}
+
+.camp-price {
+    white-space: nowrap;
+}
+
+.campground-hero-image {
+    height: 520px;
+    object-fit: cover;
+}
+
+.campground-image-placeholder {
+    min-height: 360px;
+    background: #f5f5f5;
+}
+
+.campground-description {
+    font-size: 1.05rem;
+    line-height: 1.75;
+    color: #404040;
+}
+
+.campground-map {
+    min-height: 320px;
+}
+
+.campground-sidebar {
+    position: sticky;
+    top: 1.5rem;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid #ececec;
+}
+
+.detail-row:last-of-type {
+    border-bottom: 0;
+}
+
+.review-form-panel {
+    background: #f7f7f7;
+}
+
+.review-card {
+    background: #fff;
+}
+
+@media (max-width: 991.98px) {
+    .campground-sidebar {
+        position: static;
+    }
+
+    .campground-hero-image {
+        height: 420px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .campground-hero-image {
+        height: 300px;
+    }
+
+    .campground-image-placeholder {
+        min-height: 260px;
+    }
+
+    .campground-map {
+        min-height: 260px;
+    }
+
+    .detail-row {
+        flex-direction: column;
+        gap: 0.2rem;
+    }
+
+    .detail-row strong {
+        text-align: left !important;
+    }
+}
