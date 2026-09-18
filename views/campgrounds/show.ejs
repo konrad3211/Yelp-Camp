@@ -35,10 +35,10 @@
     </div>
     <ul class="list-group list-group-flush">
       <li class="list-group-item text-muted"><%=camp.location  %></li>
-      <li class="list-group-item">Submitted by: <%=camp.author.username  %></li>
+      <li class="list-group-item">Submitted by: <%= camp.author ? camp.author.username : "Deleted user" %></li>
       <li class="list-group-item">$<%=camp.price  %>/night</li>
     </ul>
-    <% if(currentUser && camp.author.equals(currentUser._id)) {%>
+    <% if(currentUser && camp.author && camp.author.equals(currentUser._id)) {%>
     <div class="card-body">
       <a class="card-link btn btn-info text-white" href="/campgrounds/<%=camp._id%>/edit">Edit</a>
       <form class="d-inline" action="/campgrounds/<%= camp._id %>?_method=DELETE" method="post">
@@ -86,13 +86,13 @@
 
   <div class="card mb-3">
     <div class="card-body">
-      <h5 class="card-title"><%= review.author.username  %></h5>
+      <h5 class="card-title"><%= review.author ? review.author.username : "Deleted user" %></h5>
       <p class="starability-result" data-rating="<%=review.rating  %>">
         Rated: <%=review.rating  %> stars
       </p>
       <!-- <h6 class="card-subtitle mb-2 text-body-secondary">By: <%= review.author.username  %></h6> -->
       <p class="card-text">Review: <%= review.body %></p>
-      <% if(currentUser && review.author.equals(currentUser._id)) {%>
+      <% if(currentUser && review.author && review.author.equals(currentUser._id)) {%>
       <form action="/campgrounds/<%=camp._id%>/reviews/<%=review._id  %>?_method=Delete" method="post">
         <button class="btn btn-sm btn-danger">Delete</button>
       </form>
